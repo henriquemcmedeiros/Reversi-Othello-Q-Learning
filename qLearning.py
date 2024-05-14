@@ -3,7 +3,7 @@ import utility
 import hashlib
 
 class QLearningAgent:
-    def __init__(self, q_table_file=None, episodes=5000, alpha=0.5, gamma=0.9, epsilon=0.1):
+    def __init__(self, q_table_file=None, episodes=10000, alpha=0.5, gamma=0.9, epsilon=0.1):
         if q_table_file is not None:
             self.Q = self.load_q_table(q_table_file)
         else:
@@ -28,11 +28,19 @@ class QLearningAgent:
 
         # Check if the state exists in the Q-table
         if chave_tabuleiro not in self.Q:
-            valid_actions = utility.get_movimentos_validos(tabuleiro, player)
-            action = valid_actions[np.random.choice(len(valid_actions))]
-        else:
+        #     print("Jogada não mapeada")
+        #     valid_actions = utility.get_movimentos_validos(tabuleiro, player)
+        #     action = valid_actions[np.random.choice(len(valid_actions))]
+        # else:
+        #     matriz = [self.Q[chave_tabuleiro][i:i+8] for i in range(0, len(self.Q[chave_tabuleiro]), 8)]
+        #     # Imprimindo a matriz
+        #     for linha in matriz:
+        #         print(*linha)
+        #     print("=================")
+            
             # Get the action that has the maximum Q-value
-            max_action_value = np.argmax(self.Q[chave_tabuleiro])
+            array_sem_0 = np.where(self.Q[chave_tabuleiro]==0, -np.inf, self.Q[chave_tabuleiro])
+            max_action_value = np.argmax(array_sem_0)
             action = (max_action_value // 8, max_action_value % 8)
 
         return action
@@ -97,5 +105,5 @@ class QLearningAgent:
         np.save('QTable.npy', self.Q)
 
 # Inicializar e treinar o agente
-agent = QLearningAgent()
-agent.train()
+# agent = QLearningAgent('QTable.npy', episodes=1000, epsilon=0.5)
+# agent.train()

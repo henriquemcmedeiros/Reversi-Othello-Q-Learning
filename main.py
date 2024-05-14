@@ -75,7 +75,7 @@ def main():
               print("Não há movimentos possíveis para o jogador AI.")
               player = 'B' if player == 'P' else 'P' 
               continue
-          utility.fazer_jogada(tabuleiro, best_move[0], best_move[1], ai_player)
+          tabuleiro = utility.fazer_jogada(tabuleiro, best_move[0], best_move[1], ai_player)
           player = 'P'
           continue
       else:
@@ -87,7 +87,7 @@ def main():
                   x, y = event.pos
                   linha, coluna = y // QUADRADO_TABULEIRO, x // QUADRADO_TABULEIRO
                   if utility.movimento_eh_valido(tabuleiro, linha, coluna, player):
-                      utility.fazer_jogada(tabuleiro, linha, coluna, player)
+                      tabuleiro = utility.fazer_jogada(tabuleiro, linha, coluna, player)
                       player = 'B' if player == 'P' else 'P'
       desenha_tabuleiro(tabuleiro, player)
       desenha_pecas(tabuleiro)
