@@ -2,6 +2,7 @@ import time
 import pygame
 import sys
 import utility
+import numpy as np
 from minimax_alfabeta import get_melhor_movimento
 
 # Constantes
@@ -11,6 +12,9 @@ QUADRADO_TABULEIRO = WIDTH // 8
 PRETO = (0, 0, 0)
 BRANCO = (255, 255, 255)
 VERDE = (0, 128, 0)
+
+# Inicialização tabela Q
+Q = np.zeros((8, 8, 8*8))
 
 # Inicialização do Pygame
 pygame.init()
@@ -34,13 +38,6 @@ def desenha_pecas(tabuleiro):
           elif tabuleiro[linha][coluna] == 'B':
               pygame.draw.circle(screen, BRANCO, (coluna * QUADRADO_TABULEIRO + QUADRADO_TABULEIRO // 2, linha * QUADRADO_TABULEIRO + QUADRADO_TABULEIRO // 2), QUADRADO_TABULEIRO // 3)
 
-
-def inicializar_tabuleiro():
-    tabuleiro = [[' ' for _ in range(8)] for _ in range(8)]
-    tabuleiro[3][3] = tabuleiro[4][4] = 'B'
-    tabuleiro[3][4] = tabuleiro[4][3] = 'P'
-    return tabuleiro
-
 def contar_pecas(tabuleiro):
     PRETO_count = sum(linha.count('P') for linha in tabuleiro)
     BRANCO_count = sum(linha.count('B') for linha in tabuleiro)
@@ -56,9 +53,13 @@ def get_vencedor(tabuleiro):
         return 'EMPATE'
 
 def main():
-  tabuleiro = inicializar_tabuleiro()
+  tabuleiro = utility.inicializar_tabuleiro()
+
   player = 'P'
   ai_player = 'B'
+  # Carregar a tabela Q
+  Q_loaded = np.loadtxt('q_table.txt').reshape(8, 8, 8*8)
+
   while not utility.game_over(tabuleiro):
       movimentos_validos = utility.get_movimentos_validos(tabuleiro, player)
       if not movimentos_validos:
