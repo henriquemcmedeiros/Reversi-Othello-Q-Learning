@@ -1,10 +1,9 @@
 import numpy as np
 import utility
-import sys
 import hashlib
 
 class QLearningAgent:
-    def __init__(self, q_table_file=None, episodes=10, alpha=0.5, gamma=0.9, epsilon=0.1):
+    def __init__(self, q_table_file=None, episodes=10000, alpha=0.5, gamma=0.9, epsilon=0.1):
         if q_table_file is not None:
             self.Q = self.load_q_table(q_table_file)
         else:
@@ -16,10 +15,7 @@ class QLearningAgent:
         self.state_hashes = {}  # Armazena os hashes dos estados do tabuleiro
 
     def load_q_table(self, q_table_file):
-        Q = {}
-        with open(q_table_file, 'r') as file:
-            Q = eval(file.read())
-
+        Q = np.load(q_table_file, allow_pickle='TRUE').item()
         return Q
 
     def get_state_hash(self, tabuleiro):
@@ -46,7 +42,7 @@ class QLearningAgent:
                 valid_actions = utility.get_movimentos_validos(tabuleiro, player)
 
                 if not valid_actions:
-                    print(f"{player} não tem movimentos possíveis. Passando a vez.")
+                    #print(f"{player} não tem movimentos possíveis. Passando a vez.")
                     player = 'B' if player == 'P' else 'P'
                     valid_actions = utility.get_movimentos_validos(tabuleiro, player)
 
@@ -83,9 +79,8 @@ class QLearningAgent:
                     break
 
         # Salvar a tabela Q
-        with open('QTable.txt', 'w') as file:
-            file.write(str(self.Q))
+        np.save('QTable.npy', self.Q)
 
 # Inicializar e treinar o agente - 'hash_set.txt'
-agent = QLearningAgent('QTable.txt')
+agent = QLearningAgent('QTable.npy')
 agent.train()
