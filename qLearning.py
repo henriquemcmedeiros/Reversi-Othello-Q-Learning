@@ -21,6 +21,21 @@ class QLearningAgent:
     def get_state_hash(self, tabuleiro):
         # Calcula o hash do estado do tabuleiro
         return hashlib.sha256(str(tabuleiro).encode()).hexdigest()
+    
+    def play(self, tabuleiro, player):
+        # Get the hash of the current state
+        chave_tabuleiro = self.get_state_hash(tabuleiro)
+
+        # Check if the state exists in the Q-table
+        if chave_tabuleiro not in self.Q:
+            valid_actions = utility.get_movimentos_validos(tabuleiro, player)
+            action = valid_actions[np.random.choice(len(valid_actions))]
+        else:
+            # Get the action that has the maximum Q-value
+            max_action_value = np.argmax(self.Q[chave_tabuleiro])
+            action = (max_action_value // 8, max_action_value % 8)
+
+        return action
 
     def train(self):
         for episode in range(self.episodes):

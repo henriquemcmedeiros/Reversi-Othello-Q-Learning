@@ -2,6 +2,7 @@ import time
 import pygame
 import sys
 import utility
+import qLearning
 import numpy as np
 from minimax_alfabeta import get_melhor_movimento
 
@@ -55,10 +56,11 @@ def get_vencedor(tabuleiro):
 def main():
   tabuleiro = utility.inicializar_tabuleiro()
 
+  # Instanciando a IA
+  agent_ai = qLearning.QLearningAgent('QTable.npy')
+
   player = 'P'
   ai_player = 'B'
-  # Carregar a tabela Q
-  Q_loaded = np.loadtxt('q_table.txt').reshape(8, 8, 8*8)
 
   while not utility.game_over(tabuleiro):
       movimentos_validos = utility.get_movimentos_validos(tabuleiro, player)
@@ -68,7 +70,7 @@ def main():
           continue
       
       if player == ai_player and movimentos_validos:
-          best_move = get_melhor_movimento(tabuleiro, ai_player)
+          best_move = agent_ai.play(tabuleiro, ai_player)
           if best_move is None:
               print("Não há movimentos possíveis para o jogador AI.")
               player = 'B' if player == 'P' else 'P' 
