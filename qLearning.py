@@ -96,6 +96,6 @@ class QLearningAgent:
         # Salvar a tabela Q
         np.save('QTable.npy', self.Q)
 
-# Inicializar e treinar o agente - 'hash_set.txt'
-agent = QLearningAgent('QTable.npy')
+# Inicializar e treinar o agente
+agent = QLearningAgent()
 agent.train()
