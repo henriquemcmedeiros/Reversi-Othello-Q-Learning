@@ -3,7 +3,7 @@ import utility
 import hashlib
 
 class QLearningAgent:
-    def __init__(self, q_table_file=None, episodes=10000, alpha=0.5, gamma=0.9, epsilon=0.1):
+    def __init__(self, q_table_file=None, episodes=5000, alpha=0.5, gamma=0.9, epsilon=0.1):
         if q_table_file is not None:
             self.Q = self.load_q_table(q_table_file)
         else:
