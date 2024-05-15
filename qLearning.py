@@ -105,5 +105,5 @@ class QLearningAgent:
         np.save('QTable.npy', self.Q)
 
 # Inicializar e treinar o agente
-# agent = QLearningAgent('QTable.npy', episodes=1000, epsilon=0.5)
-# agent.train()
+agent = QLearningAgent(episodes=10000, epsilon=0.5)
+agent.train()

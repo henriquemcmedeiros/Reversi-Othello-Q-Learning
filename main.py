@@ -39,20 +39,6 @@ def desenha_pecas(tabuleiro):
           elif tabuleiro[linha][coluna] == 'B':
               pygame.draw.circle(screen, BRANCO, (coluna * QUADRADO_TABULEIRO + QUADRADO_TABULEIRO // 2, linha * QUADRADO_TABULEIRO + QUADRADO_TABULEIRO // 2), QUADRADO_TABULEIRO // 3)
 
-def contar_pecas(tabuleiro):
-    PRETO_count = sum(linha.count('P') for linha in tabuleiro)
-    BRANCO_count = sum(linha.count('B') for linha in tabuleiro)
-    return PRETO_count, BRANCO_count
-
-def get_vencedor(tabuleiro):
-    PRETO_count, BRANCO_count = contar_pecas(tabuleiro)
-    if PRETO_count > BRANCO_count:
-      return 'PRETO'
-    elif BRANCO_count > PRETO_count:
-        return 'BRANCO'
-    else:
-        return 'EMPATE'
-
 def main():
   tabuleiro = utility.inicializar_tabuleiro()
 
@@ -93,7 +79,7 @@ def main():
       desenha_pecas(tabuleiro)
       pygame.display.flip()
 
-  vencedor = get_vencedor(tabuleiro)
+  vencedor = utility.get_vencedor(tabuleiro)
   print("Vencedor: ", vencedor)
 
 if __name__ == "__main__":

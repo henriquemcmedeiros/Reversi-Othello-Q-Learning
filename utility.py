@@ -80,3 +80,17 @@ def get_melhor_movimento(tabuleiro, player):
       melhor_heuristica = heuristica
       melhor_movimento = movimento
   return melhor_movimento
+
+def contar_pecas(tabuleiro):
+    PRETO_count = sum(linha.count('P') for linha in tabuleiro)
+    BRANCO_count = sum(linha.count('B') for linha in tabuleiro)
+    return PRETO_count, BRANCO_count
+
+def get_vencedor(tabuleiro):
+    PRETO_count, BRANCO_count = contar_pecas(tabuleiro)
+    if PRETO_count > BRANCO_count:
+      return 'PRETO'
+    elif BRANCO_count > PRETO_count:
+        return 'BRANCO'
+    else:
+        return 'EMPATE'
