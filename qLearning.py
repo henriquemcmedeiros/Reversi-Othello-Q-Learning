@@ -8,64 +8,78 @@ class QLearningAgent:
             self.Q = self.load_q_table(q_table_file)
         else:
             self.Q = {}
+        self.q_table_file = q_table_file
         self.episodes = episodes
         self.alpha = alpha
         self.gamma = gamma
         self.epsilon = epsilon
-        self.state_hashes = {}  # Armazena os hashes dos estados do tabuleiro
 
     def load_q_table(self, q_table_file):
-        Q = np.load(q_table_file, allow_pickle='TRUE').item()
-        return Q
+        return np.load(q_table_file, allow_pickle='TRUE').item()
 
-    def get_state_hash(self, tabuleiro):
+    def get_hash_tabuleiro(self, tabuleiro):
         # Calcula o hash do estado do tabuleiro
-        return hashlib.sha256(str(tabuleiro).encode()).hexdigest()
+        #return hashlib.sha256(str(tabuleiro).encode()).hexdigest()
+        hash_valor = 0
+        for i in range(8):
+            for j in range(8):
+                # ' ' = 0 'B' = 1 e 'P' = 2
+                valor = 0 if tabuleiro[i][j] == ' ' else 1 if tabuleiro[i][j] == 'B' else 2
+                hash_valor = hash_valor * 3 + valor
+        return hash_valor
+    
+    def get_maior_q(self, chave_tabuleiro):
+        valores = list(self.Q[chave_tabuleiro].values())
+        return max(valores)
+    
+    def get_acao_maximo_q(self, chave_tabuleiro):
+        maior_valor = self.get_maior_q(chave_tabuleiro)
+        for chave_acao in self.Q[chave_tabuleiro].keys():
+            if self.Q[chave_tabuleiro][chave_acao] == maior_valor:
+                return chave_acao
     
     def play(self, tabuleiro, player):
-        # Get the hash of the current state
-        chave_tabuleiro = self.get_state_hash(tabuleiro)
+        chave_tabuleiro = self.get_hash_tabuleiro(tabuleiro)
 
         # Check if the state exists in the Q-table
         if chave_tabuleiro not in self.Q:
-        #     print("Jogada não mapeada")
-        #     valid_actions = utility.get_movimentos_validos(tabuleiro, player)
-        #     action = valid_actions[np.random.choice(len(valid_actions))]
-        # else:
+            print("Jogada não mapeada")
+            valid_actions = utility.get_movimentos_validos(tabuleiro, player)
+            action = valid_actions[np.random.choice(len(valid_actions))]
+        else:
         #     matriz = [self.Q[chave_tabuleiro][i:i+8] for i in range(0, len(self.Q[chave_tabuleiro]), 8)]
         #     # Imprimindo a matriz
         #     for linha in matriz:
         #         print(*linha)
         #     print("=================")
-            
-            # Get the action that has the maximum Q-value
-            array_sem_0 = np.where(self.Q[chave_tabuleiro]==0, -np.inf, self.Q[chave_tabuleiro])
-            max_action_value = np.argmax(array_sem_0)
-            action = (max_action_value // 8, max_action_value % 8)
+            # Pega a ação com o maior valor na tabela Q
+            action = self.get_acao_maximo_q(chave_tabuleiro)
 
         return action
 
     def train(self):
+        if self.q_table_file is not None:
+            self.Q = self.load_q_table(self.q_table_file)
+        else:
+            self.Q = {}
+
         for episode in range(self.episodes):
             # Inicialize o estado
             tabuleiro = utility.inicializar_tabuleiro()
             player = 'P'
 
             while True:
-                # Transforma o estado em uma tupla para usar como chave no dicionário Q
-                #chave_tabuleiro = tuple(map(tuple, tabuleiro))
-                chave_tabuleiro = self.get_state_hash(tabuleiro)
+                # Transforma o estado hash usar como chave no dicionário Q
+                chave_tabuleiro = self.get_hash_tabuleiro(tabuleiro)
 
                 # Inicializa o estado na tabela Q e no objeto de hashes, se necessário
                 if chave_tabuleiro not in self.Q:
-                    self.Q[chave_tabuleiro] = np.zeros(8*8)
-                    self.state_hashes[chave_tabuleiro] = self.get_state_hash(tabuleiro)
+                    self.Q[chave_tabuleiro] = {}
 
-                # Obtenha as ações possíveis
+                # Pega as ações possíveis
                 valid_actions = utility.get_movimentos_validos(tabuleiro, player)
 
                 if not valid_actions:
-                    #print(f"{player} não tem movimentos possíveis. Passando a vez.")
                     player = 'B' if player == 'P' else 'P'
                     valid_actions = utility.get_movimentos_validos(tabuleiro, player)
 
@@ -73,11 +87,11 @@ class QLearningAgent:
                 if np.random.uniform(0, 1) < self.epsilon:
                     action = valid_actions[np.random.choice(len(valid_actions))]  # Ação aleatória
                 else:
-                    # Ação que maximiza o valor Q
-                    action_values = self.Q[chave_tabuleiro][valid_actions]
-                    action = utility.get_melhor_movimento(tabuleiro, player)
-
-                position_action = action[0] * 8 + action[1]
+                    # Ação que maximiza o valor Q se tiver mapeado
+                    if self.Q[chave_tabuleiro] != {}:
+                        action = self.get_acao_maximo_q(chave_tabuleiro)
+                    else:
+                        action = utility.get_melhor_movimento(tabuleiro, player)
 
                 # Execute a ação
                 prox_tabuleiro = utility.fazer_jogada(tabuleiro, action[0], action[1], player)
@@ -85,25 +99,30 @@ class QLearningAgent:
                 player = 'B' if player == 'P' else 'P'
 
                 # Transforma o próximo estado em uma tupla para usar como chave no dicionário Q
-                next_chave_tabuleiro = self.get_state_hash(tabuleiro)
+                next_chave_tabuleiro = self.get_hash_tabuleiro(tabuleiro)
 
                 if next_chave_tabuleiro not in self.Q:
-                    self.Q[next_chave_tabuleiro] = np.zeros(8*8)
-                    self.state_hashes[next_chave_tabuleiro] = self.get_state_hash(tabuleiro)
+                    self.Q[next_chave_tabuleiro] = {}
 
-                self.Q[chave_tabuleiro][position_action] = (1 - self.alpha) * self.Q[chave_tabuleiro][position_action] + \
-                                                  self.alpha * (recompensa + self.gamma * np.max(self.Q[next_chave_tabuleiro]))
-
+                # Cria o elemento na tabela caso não exista
+                self.Q[chave_tabuleiro][action] = self.Q[chave_tabuleiro][action] if self.Q[chave_tabuleiro].get(action) else 0
+                
+                maior_valor = self.get_maior_q(chave_tabuleiro)
+                
+                self.Q[chave_tabuleiro][action] = (1 - self.alpha) * self.Q[chave_tabuleiro][action] + self.alpha * (recompensa + self.gamma * maior_valor)
+                
                 tabuleiro = prox_tabuleiro
 
                 # Se o episódio terminou, saia do loop -- GAMEOVER
                 if utility.game_over(tabuleiro):
-                    print(f"Fim do teste {episode}")
+                    #print(f"Fim do teste {episode}")
                     break
 
         # Salvar a tabela Q
         np.save('QTable.npy', self.Q)
 
 # Inicializar e treinar o agente
-agent = QLearningAgent(episodes=10000, epsilon=0.5)
-agent.train()
+agent = QLearningAgent('QTable.npy', episodes=1000, epsilon=1)
+for i in range(1000):
+    agent.train()
+    print(f"===== Fim do treinamento {i} =====")
