@@ -1,6 +1,6 @@
 import numpy as np
 import utility
-import hashlib
+import os
 
 class QLearningAgent:
     def __init__(self, q_table_file=None, episodes=10000, alpha=0.5, gamma=0.9, epsilon=0.1):
@@ -125,4 +125,6 @@ class QLearningAgent:
 agent = QLearningAgent('QTable.npy', episodes=1000, epsilon=1)
 for i in range(1000):
     agent.train()
+    file_size = os.path.getsize('/workspaces/Reversi-Othello-Q-Learning/QTable.npy')
+    print("Size of the file:", file_size / 1000000, "MB")
     print(f"===== Fim do treinamento {i} =====")
