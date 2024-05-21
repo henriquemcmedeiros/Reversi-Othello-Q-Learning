@@ -14,9 +14,6 @@ PRETO = (0, 0, 0)
 BRANCO = (255, 255, 255)
 VERDE = (0, 128, 0)
 
-# Inicialização tabela Q
-Q = np.zeros((8, 8, 8*8))
-
 # Inicialização do Pygame
 pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -40,47 +37,51 @@ def desenha_pecas(tabuleiro):
               pygame.draw.circle(screen, BRANCO, (coluna * QUADRADO_TABULEIRO + QUADRADO_TABULEIRO // 2, linha * QUADRADO_TABULEIRO + QUADRADO_TABULEIRO // 2), QUADRADO_TABULEIRO // 3)
 
 def main():
-  tabuleiro = utility.inicializar_tabuleiro()
+    tabuleiro = utility.inicializar_tabuleiro()
+    player = 'P'
+    ai_minimax = 'B'
+    ai_qlearning = 'P'
+    
+    # Instanciando a IA de Q-Learning
+    agent_ai = qLearning.QLearningAgent('QTable.npy')
 
-  # Instanciando a IA
-  agent_ai = qLearning.QLearningAgent('QTable.npy')
+    while not utility.game_over(tabuleiro):
+        movimentos_validos = utility.get_movimentos_validos(tabuleiro, player)
+        if not movimentos_validos:
+            print(f"{player} não tem movimentos possíveis. Passando a vez.")
+            player = 'B' if player == 'P' else 'P'
+            continue
+        
+        if player == ai_minimax:
+            best_move = get_melhor_movimento(tabuleiro, ai_minimax)
+            print(" Player: " + player, end="")
+            print(best_move)
+            if best_move is None:
+                print("Não há movimentos possíveis para o jogador Minimax.")
+                player = 'B' if player == 'P' else 'P'
+                continue
+            tabuleiro = utility.fazer_jogada(tabuleiro, best_move[0], best_move[1], ai_minimax)
+            player = ai_qlearning
+        else:
+            best_move = agent_ai.play(tabuleiro, ai_qlearning)
+            print(" Player: " + player, end="")
+            print(best_move)
+            if best_move is None:
+                print("Não há movimentos possíveis para o jogador Q-Learning.")
+                player = 'P' if player == 'B' else 'B'
+                continue
+            tabuleiro = utility.fazer_jogada(tabuleiro, best_move[0], best_move[1], ai_qlearning)
+            player = ai_minimax
 
-  player = 'P'
-  ai_player = 'B'
+        desenha_tabuleiro(tabuleiro, player)
+        desenha_pecas(tabuleiro)
+        pygame.display.flip()
 
-  while not utility.game_over(tabuleiro):
-      movimentos_validos = utility.get_movimentos_validos(tabuleiro, player)
-      if not movimentos_validos:
-          print(f"{player} não tem movimentos possíveis. Passando a vez.")
-          player = 'B' if player == 'P' else 'P'
-          continue
-      
-      if player == ai_player and movimentos_validos:
-          best_move = agent_ai.play(tabuleiro, ai_player)
-          if best_move is None:
-              print("Não há movimentos possíveis para o jogador AI.")
-              player = 'B' if player == 'P' else 'P' 
-              continue
-          tabuleiro = utility.fazer_jogada(tabuleiro, best_move[0], best_move[1], ai_player)
-          player = 'P'
-          continue
-      else:
-          for event in pygame.event.get():
-              if event.type == pygame.QUIT:
-                  pygame.quit()
-                  sys.exit()
-              if event.type == pygame.MOUSEBUTTONDOWN:
-                  x, y = event.pos
-                  linha, coluna = y // QUADRADO_TABULEIRO, x // QUADRADO_TABULEIRO
-                  if utility.movimento_eh_valido(tabuleiro, linha, coluna, player):
-                      tabuleiro = utility.fazer_jogada(tabuleiro, linha, coluna, player)
-                      player = 'B' if player == 'P' else 'P'
-      desenha_tabuleiro(tabuleiro, player)
-      desenha_pecas(tabuleiro)
-      pygame.display.flip()
+        # Pausa de 3 segundos entre as jogadas
+        #time.sleep(1)
 
-  vencedor = utility.get_vencedor(tabuleiro)
-  print("Vencedor: ", vencedor)
+    vencedor = utility.get_vencedor(tabuleiro)
+    print("Vencedor: ", vencedor)
 
 if __name__ == "__main__":
-  main()
+    main()
