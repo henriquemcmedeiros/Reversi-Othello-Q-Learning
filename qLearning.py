@@ -1,27 +1,26 @@
 import numpy as np
 import utility
-import os
 
 class QLearningAgent:
-    def __init__(self, q_table_file=None, episodes=10000, alpha=0.5, gamma=0.9, epsilon=0.1):
-        self.q_table_file = q_table_file
-        self.episodes = episodes
+    def __init__(self, q_table_arquivo=None, episodios=10000, alpha=0.5, gamma=0.9, epsilon=0.1):
+        self.q_table_arquivo = q_table_arquivo
+        self.episodios = episodios
         self.alpha = alpha
         self.gamma = gamma
         self.epsilon = epsilon
-        self.Q = self.load_q_table(q_table_file) if q_table_file else {}
+        self.Q = self.load_q_table(q_table_arquivo) if q_table_arquivo else {}
 
-    def load_q_table(self, q_table_file):
-        return np.load(q_table_file, allow_pickle=True).item()
+    def load_q_table(self, q_table_arquivo):
+        return np.load(q_table_arquivo, allow_pickle=True).item()
 
     def save_q_table(self):
         np.save('QTable.npy', self.Q)
 
     def get_hash_tabuleiro(self, tabuleiro):
         hash_valor = 0
-        for row in tabuleiro:
-            for cell in row:
-                valor = 0 if cell == ' ' else 1 if cell == 'B' else 2
+        for linha in tabuleiro:
+            for elem in linha:
+                valor = 0 if elem == ' ' else 1 if elem == 'B' else 2
                 hash_valor = hash_valor * 3 + valor
         return hash_valor
 
@@ -34,20 +33,19 @@ class QLearningAgent:
             if valor == maior_valor:
                 return chave_acao
 
-    def play(self, tabuleiro, player):
+    def play(self, tabuleiro):
         chave_tabuleiro = self.get_hash_tabuleiro(tabuleiro)
 
         if chave_tabuleiro not in self.Q:
-            print("Jogada não mapeada")
-            valid_actions = utility.get_movimentos_validos(tabuleiro, player)
-            action = valid_actions[np.random.choice(len(valid_actions))]
+            print("Trocando para Minimax, jogada não mapeada")
+            return None
         else:
             action = self.get_acao_maximo_q(chave_tabuleiro)
         
         return action
 
     def train(self):
-        for episode in range(self.episodes):
+        for _ in range(self.episodios):
             tabuleiro = utility.inicializar_tabuleiro()
             player = 'P'
 
@@ -57,14 +55,14 @@ class QLearningAgent:
                 if chave_tabuleiro not in self.Q:
                     self.Q[chave_tabuleiro] = {}
 
-                valid_actions = utility.get_movimentos_validos(tabuleiro, player)
+                acoes_validas = utility.get_movimentos_validos(tabuleiro, player)
 
-                if not valid_actions:
+                if not acoes_validas:
                     player = 'B' if player == 'P' else 'P'
-                    valid_actions = utility.get_movimentos_validos(tabuleiro, player)
+                    acoes_validas = utility.get_movimentos_validos(tabuleiro, player)
 
                 if np.random.uniform(0, 1) < self.epsilon:
-                    action = valid_actions[np.random.choice(len(valid_actions))]
+                    action = acoes_validas[np.random.choice(len(acoes_validas))]
                 else:
                     action = self.get_acao_maximo_q(chave_tabuleiro) if self.Q[chave_tabuleiro] else utility.get_melhor_movimento(tabuleiro, player)
 
@@ -90,11 +88,3 @@ class QLearningAgent:
                     break
 
         self.save_q_table()
-
-# Initialize and train the agent
-#agent = QLearningAgent('QTable.npy', episodes=1000, epsilon=1)
-#for i in range(1000):
-#    agent.train()
-#    file_size = os.path.getsize('QTable.npy')
-#    print("Size of the file:", file_size / 1_000_000, "MB")
-#    print(f"===== Fim do treinamento {i} =====")

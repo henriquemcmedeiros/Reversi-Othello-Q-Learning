@@ -43,6 +43,10 @@ def calc_recompensa(tabuleiro, player):
         player_score += 1
       elif elemento != ' ':
         oponente_score += 1
+
+  if oponente_score == 0:
+    return 64 #Recompensa máxima para ganhar
+  
   return player_score - oponente_score
 
 def game_over(tabuleiro):
